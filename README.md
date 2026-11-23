@@ -1,19 +1,15 @@
-# SIPERPUS Desktop
+# SIPERPUS Desktop dengan JavaFX
 
-Jalankan dari folder proyek dengan JDK 22 atau lebih baru (diuji dengan JDK 26).
+Dari PowerShell di folder ini pada Windows 64-bit, jalankan dengan JDK 24 atau lebih baru.
 
 ```powershell
-java src/Siperpus.java
+java Siperpus.java
 ```
 
-Katalog terbuka untuk pengunjung. Klik **Login staf** untuk memakai akun demo `admin / admin` atau `petugas / petugas`. Data disimpan di memori selama jendela aplikasi aktif.
+SIPERPUS akan terbuka di jendela desktop. Program mengunduh JavaFX ke folder `lib/javafx` jika diperlukan, jadi unduhan pertama memerlukan koneksi internet. Aplikasi memakai data demo di memori.
 
-| Lokasi | Isi |
-|---|---|
-| `src/model/` | Buku, anggota, akun dan peran, peminjaman, serta detail tiap buku. |
-| `src/dao/` | Kontrak DAO, penyimpanan di memori, pencarian ISBN, dan kesalahan akses data. |
-| `src/service/` | Aturan transaksi, cek stok dan batas buku aktif, serta proses pengembalian. |
-| `src/view/` | Form Swing untuk pengunjung, petugas, dan admin. |
-| `src/util/` | Inisialisasi data contoh dan validasi. |
-| `test/view/` | Pengujian transaksi dan halaman Swing. |
-| `lib/`, `sql/` | Folder cadangan untuk driver dan skrip database pada tahap berikutnya. |
+Buka `src/SiperpusDesktop.java` dan baca method `start()` untuk melihat cara aplikasi membuka jendela. `src/MenuTransaksi.java` menangani pilihan buku, lalu `src/service/PeminjamanService.java` memeriksa stok dan batas pinjam.
+
+Katalog bisa dibuka tanpa login. Akun demo Admin memakai `admin` dan Petugas memakai `petugas` sebagai username sekaligus password.
+
+Untuk mencoba pengembalian satu buku, masuk sebagai Petugas, pilih menu **Pengembalian**, lalu pilih salah satu buku dari transaksi 1. Dengan tanggal kembali hari ini, buku contoh itu memiliki denda Rp30.000. Buku lainnya tetap dipinjam sampai dikembalikan.

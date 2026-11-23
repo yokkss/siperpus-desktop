@@ -3,8 +3,6 @@ package service;
 import dao.Dao;
 import model.*;
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
 import static util.Validasi.require;
 
 public class PeminjamanService {
@@ -19,38 +17,71 @@ public class PeminjamanService {
     }
 
     public int borrowed(Buku buku) {
-        return (int) pinjaman.semua().stream().flatMap(p -> p.items.stream())
-                .filter(i -> i.book == buku && i.returned() == null).count();
+        // Telusuri detail semua transaksi, lalu hitung eksemplar judul ini yang tanggal kembalinya masih kosong.
+        int jumlah = 0;
+        for (Peminjaman transaksi : pinjaman.semua()) {
+            for (DetailPeminjaman detail : transaksi.items) {
+                if (detail.book == buku && detail.returned() == null) jumlah++;
+            }
+        }
+        return jumlah;
     }
 
     public int available(Buku buku) { return buku.stock() - borrowed(buku); }
 
     public long active(Anggota anggota) {
-        return pinjaman.semua().stream().filter(p -> p.member == anggota)
-                .flatMap(p -> p.items.stream()).filter(i -> i.returned() == null).count();
-    }
-
-    public Peminjaman borrow(Anggota peminjam, List<Buku> pilihan) {
-        return borrow(peminjam, pilihan, LocalDate.now());
-    }
-
-    public Peminjaman borrow(Anggota peminjam, List<Buku> pilihan, LocalDate tanggal) {
-        require(anggota.semua().contains(peminjam), "Pilih anggota yang terdaftar.");
-        require(!pilihan.isEmpty(), "Tambahkan minimal satu buku.");
-        require(active(peminjam) + pilihan.size() <= 3, "Batas anggota adalah 3 buku aktif.");
-        for (Buku b : pilihan) {
-            require(buku.semua().contains(b) && available(b) >= Collections.frequency(pilihan, b),
-                    "Stok tidak mencukupi untuk " + b + ".");
+        long jumlah = 0;
+        for (Peminjaman transaksi : pinjaman.semua()) {
+            if (transaksi.member != anggota) continue;
+            for (DetailPeminjaman detail : transaksi.items) {
+                if (detail.returned() == null) jumlah++;
+            }
         }
-        Peminjaman baru = new Peminjaman(pinjaman.semua().size() + 1, peminjam, tanggal, pilihan);
+        return jumlah;
+    }
+
+    // Contoh overloading: versi ini memakai tanggal hari ini. Data demo mengisi tanggal sendiri.
+    public Peminjaman borrow(Anggota peminjam, Buku bukuPertama, Buku bukuKedua, Buku bukuKetiga) {
+        return borrow(peminjam, bukuPertama, bukuKedua, bukuKetiga, LocalDate.now());
+    }
+
+    public Peminjaman borrow(Anggota peminjam, Buku bukuPertama, Buku bukuKedua, Buku bukuKetiga,
+                             LocalDate tanggal) {
+        require(anggota.semua().contains(peminjam), "Pilih anggota yang terdaftar.");
+        require(bukuPertama != null, "Tambahkan minimal satu buku.");
+        int jumlahPilihan = 1;
+        if (bukuKedua != null) jumlahPilihan++;
+        if (bukuKetiga != null) jumlahPilihan++;
+
+        // Jika sudah memegang 2 buku, anggota masih boleh menambah 1 buku.
+        require(active(peminjam) + jumlahPilihan <= 3, "Batas anggota adalah 3 buku aktif.");
+
+        periksaStok(bukuPertama, bukuKedua, bukuKetiga);
+        periksaStok(bukuKedua, bukuPertama, bukuKetiga);
+        periksaStok(bukuKetiga, bukuPertama, bukuKedua);
+
+        Peminjaman baru = new Peminjaman(pinjaman.semua().size() + 1, peminjam, tanggal,
+                bukuPertama, bukuKedua, bukuKetiga);
         pinjaman.tambah(baru);
         return baru;
+    }
+
+    private void periksaStok(Buku pilihan, Buku pilihanLainA, Buku pilihanLainB) {
+        if (pilihan == null) return;
+
+        // Judul yang dipilih dua kali membutuhkan dua eksemplar.
+        int jumlah = 1;
+        if (pilihan == pilihanLainA) jumlah++;
+        if (pilihan == pilihanLainB) jumlah++;
+        require(buku.semua().contains(pilihan) && available(pilihan) >= jumlah,
+                "Stok tidak mencukupi untuk " + pilihan + ".");
     }
 
     public void giveBack(Peminjaman transaksi, DetailPeminjaman item, LocalDate tanggal) {
         require(pinjaman.semua().contains(transaksi) && transaksi.items.contains(item), "Detail transaksi tidak ditemukan.");
         require(!tanggal.isBefore(transaksi.start) && !tanggal.isAfter(LocalDate.now()),
                 "Tanggal kembali harus di antara tanggal pinjam dan hari ini.");
+        // Catat tanggal pada detail yang dipilih. Setelah itu borrowed() tidak lagi menghitung eksemplar ini.
         item.kembalikan(tanggal);
     }
 }

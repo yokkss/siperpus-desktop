@@ -26,3 +26,6 @@ target/
 *.iml
 .DS_Store
 Thumbs.db
+
+# File JavaFX diunduh otomatis saat pertama kali menjalankan aplikasi.
+lib/javafx/

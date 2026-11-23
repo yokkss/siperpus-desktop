@@ -1,5 +1,6 @@
 package model;
 
+// Satu objek Buku mewakili satu judul. stock menyimpan total eksemplarnya.
 public class Buku {
     private String isbn;
     private String title;
@@ -23,12 +24,14 @@ public class Buku {
         this.category = category;
     }
 
+    // Method berikut memberi form akses baca ke atribut yang dideklarasikan private.
     public String isbn() { return isbn; }
     public String title() { return title; }
     public String author() { return author; }
     public String category() { return category; }
     public int stock() { return stock; }
 
+    // Daftar pilihan mencetak objek Buku, lalu toString() menampilkan judulnya.
     @Override
     public String toString() { return title; }
 }
