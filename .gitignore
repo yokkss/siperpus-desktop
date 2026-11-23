@@ -1,0 +1,28 @@
+# Kredensial dan konfigurasi lokal
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+credentials*.json
+secrets*.json
+config.local.*
+*.local.properties
+
+# Hasil kompilasi dan pengaturan editor
+*.class
+*.log
+*.jar
+bin/
+out/
+build/
+target/
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
